@@ -1,4 +1,4 @@
-# getjobcoint 네트워크
+# getjobcoin 네트워크
 ### Server 실행 -> [로컬 포트, 시드 노드 IP, 시드 노드 포트] 를 전달인자로 실행
 
 실행예제:
