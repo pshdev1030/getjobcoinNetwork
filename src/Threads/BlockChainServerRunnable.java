@@ -16,14 +16,13 @@ import java.util.HashMap;
 public class BlockChainServerRunnable implements Runnable{
     private Socket clientSocket; //본 서버와 연결된 노드 소켓
     private BlockChain blockchain;
-    private HashMap<Peer, Date> serverStatus;
-    String remoteIP;
+    private HashMap<Peer, Date> peerData;
     private int localPort;
 
-    public BlockChainServerRunnable(Socket clientSocket, BlockChain blockchain, HashMap<Peer, Date> serverStatus, int localPort) {
+    public BlockChainServerRunnable(Socket clientSocket, BlockChain blockchain, HashMap<Peer, Date> peerData, int localPort) {
         this.clientSocket = clientSocket;
         this.blockchain = blockchain;
-        this.serverStatus = serverStatus;
+        this.peerData = peerData;
         this.localPort = localPort;
     }
 
@@ -206,33 +205,33 @@ public class BlockChainServerRunnable implements Runnable{
         try {	
             String remoteIP = (((InetSocketAddress) clientSocket.getRemoteSocketAddress()).getAddress()).toString().replace("/", "");
             	
-            Peer serverInQuestion;
+            Peer tempPeer;
             switch (tokens[0]) {
                 case "HB":
-                	serverInQuestion = new Peer(remoteIP, Integer.parseInt(tokens[1]));
+                	tempPeer = new Peer(remoteIP, Integer.parseInt(tokens[1]));
 
-                	if (!serverStatus.containsKey(serverInQuestion)) {
+                	if (!peerData.containsKey(tempPeer)) {
                 		String forwardMessage = "SI|" + localPort + "|" + remoteIP + "|" + tokens[1];
                     	this.broadcastHB(forwardMessage, new ArrayList<Peer>());
                 	}
                 		
-                	serverStatus.put(serverInQuestion, new Date());
+                	peerData.put(tempPeer, new Date());
                 	this.removeUnresponsive(); //반응 없는 노드 피어리스트에서 삭제
             			
                 case "SI":
-                	serverInQuestion = new Peer(tokens[2], Integer.parseInt(tokens[3]));
+                	tempPeer = new Peer(tokens[2], Integer.parseInt(tokens[3]));
                 	Peer originator = new Peer(remoteIP, Integer.parseInt(tokens[1]));
                 		
-                	if (!serverStatus.containsKey(serverInQuestion)) {
-                    	ArrayList<Peer> exempt = new ArrayList<Peer>();
-                    	exempt.add(originator);
-                    	exempt.add(serverInQuestion);
+                	if (!peerData.containsKey(tempPeer)) {
+                    	ArrayList<Peer> newPeers = new ArrayList<Peer>();
+                    	newPeers.add(originator);
+                    	newPeers.add(tempPeer);
                     	String relayMessage = "SI|" + localPort + "|" + tokens[2] + "|" + tokens[3];
-                    	this.broadcastHB(relayMessage, exempt);
+                    	this.broadcastHB(relayMessage, newPeers);
                 	}
                 		
-                	serverStatus.put(serverInQuestion, new Date());
-                	serverStatus.put(originator, new Date());
+                	peerData.put(tempPeer, new Date());
+                	peerData.put(originator, new Date());
                 	this.removeUnresponsive(); //반응 없는 노드 피어리스트에서 삭제
                     	
                 default:     
@@ -245,28 +244,28 @@ public class BlockChainServerRunnable implements Runnable{
 
 	//4초 내에 응답하지 않은 서버는 피어 리스트에서 삭제
     public void removeUnresponsive() {
-        for (Peer server: serverStatus.keySet()) {
-            if (new Date().getTime() - serverStatus.get(server).getTime() > 4000) {
-            	serverStatus.remove(server);
-            	System.out.println("removed " + server.getHost());
+        for (Peer server: peerData.keySet()) {
+            if (new Date().getTime() - peerData.get(server).getTime() > 4000) {
+            	peerData.remove(server);
+            	System.out.println("Removed Node: " + server.getHost());
             }
         }
     }
 
     //연결된 서버(노드)들에게 HeartBeatMSG 전송
-    public void broadcastHB(String message, ArrayList<Peer> exempt) {
-    	ArrayList<Thread> threadArrayList = new ArrayList<Thread>();
-    	for (Peer info: this.serverStatus.keySet()) {
-            if (!exempt.contains(info)) {
+    public void broadcastHB(String message, ArrayList<Peer> newPeers) {
+    	ArrayList<Thread> threadList = new ArrayList<Thread>();
+    	for (Peer info: this.peerData.keySet()) {
+            if (!newPeers.contains(info)) {
                 Thread thread = new Thread(new Threads.MessageSenderRunnable(info, message));
                 thread.start();
-                threadArrayList.add(thread);
+                threadList.add(thread);
             }
         }
         
-        for (int i = 0; i < threadArrayList.size(); i++) {
+        for (int i = 0; i < threadList.size(); i++) {
             try {
-            	threadArrayList.get(i).join();
+            	threadList.get(i).join();
             } catch (InterruptedException e) { }
         }
     }
