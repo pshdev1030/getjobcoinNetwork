@@ -116,10 +116,6 @@ public class BlockChainServerRunnable implements Runnable{
 
 			//본 서버 블록체인의 최신 해시값이 (추가하도록) 요청 받은 해시값과 같거나, 요청 받은 해시값이 짧은 경우(난이도가 더 낮은 경우)
 			//또는 메시지에 적힌 체인 길이보다 본 서버의 체인 길이가 같거나 길다면 데이터 갱신을 하지 않는다.
-//			if (encodedHash.equals(tokens[3]) && this.blockchain.getLength() > Integer.parseInt(tokens[2]) ||
-//					this.blockchain.getLength() == Integer.parseInt(tokens[2]) && tokens[3].length() < encodedHash.length()){
-//				return true;
-//			}
     		if (this.blockchain.getSize() > Integer.parseInt(tokens[2]) ||
 					this.blockchain.getSize() == Integer.parseInt(tokens[2]) && tokens[3].length() < encodedHash.length()){
     			return true;
