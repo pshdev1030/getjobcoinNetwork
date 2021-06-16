@@ -8,12 +8,12 @@ import java.util.*;
 
 public class CatchupRunnable implements Runnable {
 	private BlockChain blockchain;
-	private HashMap<Peer, Date> serverStatus;
+	private HashMap<Peer, Date> peerList;
 	private int localPort;
 	
-	public CatchupRunnable(BlockChain blockchain, HashMap<Peer, Date> serverStatus, int localPort) {
+	public CatchupRunnable(BlockChain blockchain, HashMap<Peer, Date> peerList, int localPort) {
 		this.blockchain = blockchain;
-		this.serverStatus = serverStatus;
+		this.peerList = peerList;
 		this.localPort = localPort;
 	}
 	
@@ -36,18 +36,18 @@ public class CatchupRunnable implements Runnable {
 			 
 
 			//메시지를 뿌릴 대상
-			if (serverStatus.size() <= 5) {
+			if (peerList.size() <= 5) {
 				this.broadcast(InfoMsg);
 			}
 			else {
 				//네트워크 참여자가 5명이 넘어가면 랜덤으로 5명을 골라서 보냄 (과부하를 막기 위함)
 				ArrayList<Peer> targetPeers = new ArrayList<Peer>();
-				ArrayList<Peer> allPeers = new ArrayList(serverStatus.keySet());
+				ArrayList<Peer> allPeers = new ArrayList(peerList.keySet());
 				for (int i = 0; i < 5; i++) {
 					Collections.shuffle(allPeers);
 					targetPeers.add(allPeers.remove(0));
 				}
-				this.multicast(targetPeers, InfoMsg);
+				this.broadcast2(targetPeers, InfoMsg);
 			}
 
 			//2초 대기
@@ -60,7 +60,7 @@ public class CatchupRunnable implements Runnable {
 	//메시지 전체 뿌리기
     public void broadcast(String message) {
     	ArrayList<Thread> threadArrayList = new ArrayList<Thread>();
-    	for (Peer info: this.serverStatus.keySet()) {
+    	for (Peer info: this.peerList.keySet()) {
             Thread thread = new Thread(new MessageSenderRunnable(info, message));
             thread.start();
             threadArrayList.add(thread);
@@ -68,7 +68,7 @@ public class CatchupRunnable implements Runnable {
     }
 
     //피어리스트 5명 초과시에 사용하는 메소드
-    public void multicast(ArrayList<Peer> toPeers, String message) {
+    public void broadcast2(ArrayList<Peer> toPeers, String message) {
     	ArrayList<Thread> threadArrayList = new ArrayList<Thread>();
     	for (int i = 0; i < toPeers.size(); i++) {
     		Thread thread = new Thread(new MessageSenderRunnable(toPeers.get(i), message));
