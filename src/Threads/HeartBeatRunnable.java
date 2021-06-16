@@ -8,13 +8,13 @@ import java.util.HashMap;
 
 public class HeartBeatRunnable implements Runnable {
 
-    private HashMap<Peer, Date> serverStatus;
-    private int sequenceNumber;
+    private HashMap<Peer, Date> peerList;
+    private int seqNum;
     private int localPort;
 
-    public HeartBeatRunnable(HashMap<Peer, Date> serverStatus, int localPort) {
-        this.serverStatus = serverStatus;
-        this.sequenceNumber = 0;
+    public HeartBeatRunnable(HashMap<Peer, Date> peerList, int localPort) {
+        this.peerList = peerList;
+        this.seqNum = 0;
         this.localPort = localPort;
     }
 
@@ -23,15 +23,15 @@ public class HeartBeatRunnable implements Runnable {
     	String message;
         while(true) {
             // 모든 노드들에게 msg 전송
-            message = "HB|" + localPort + "|" + sequenceNumber;
+            message = "HB|" + localPort + "|" + seqNum;
 
-            for (Peer info : serverStatus.keySet()) {
+            for (Peer info : peerList.keySet()) {
                 Thread thread = new Thread(new HeartBeatSenderRunnable(info, message));
                 thread.start();
             }
 
             // increment the sequenceNumber
-            sequenceNumber += 1;
+            seqNum += 1;
 
             //2초 대기
             try {
