@@ -36,8 +36,8 @@ public class HeartBeatRunnable implements Runnable {
             //2초 대기
             try {
                 Thread.sleep(2000);
-            } catch (InterruptedException e) {
             }
+            catch (InterruptedException e) { }
         }
     }
 }

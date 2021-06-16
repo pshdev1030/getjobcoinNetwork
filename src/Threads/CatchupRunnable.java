@@ -42,7 +42,7 @@ public class CatchupRunnable implements Runnable {
 			else {
 				//네트워크 참여자가 5명이 넘어가면 랜덤으로 5명을 골라서 보냄 (과부하를 막기 위함)
 				ArrayList<Peer> targetPeers = new ArrayList<Peer>();
-				ArrayList<Peer> allPeers = new ArrayList(peerList.keySet());
+				ArrayList<Peer> allPeers = new ArrayList<Peer>(peerList.keySet());
 				for (int i = 0; i < 5; i++) {
 					Collections.shuffle(allPeers);
 					targetPeers.add(allPeers.remove(0));

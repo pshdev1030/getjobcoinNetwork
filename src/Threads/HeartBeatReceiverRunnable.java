@@ -29,8 +29,8 @@ public class HeartBeatReceiverRunnable implements Runnable{
         try {
 			heartBeatServerHandler(toClient.getInputStream());
 			toClient.close();
-        } catch (IOException e) {
-    	}
+        }
+        catch (IOException e) { }
     }
     
     public void heartBeatServerHandler(InputStream clientInputStream) {

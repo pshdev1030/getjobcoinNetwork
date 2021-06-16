@@ -25,7 +25,7 @@ public class Client {
         } catch (NumberFormatException e) {
             return;
         }
-        
+
         try {
             Wallet myWallet = new Wallet();
             Peer peer = new Peer(remoteHost, remotePort);
